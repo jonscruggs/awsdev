@@ -34,10 +34,10 @@ RUN apt-get install --no-install-recommends -y ca-certificates
 RUN apt-get install --no-install-recommends -y unzip
 RUN apt-get install --no-install-recommends -y gnupg
 WORKDIR /workspace
+RUN curl -Os https://keybase.io/hashicorp/pgp_keys.asc
 RUN curl -Os https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS
 RUN curl -Os https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
 RUN curl -Os https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_SHA256SUMS.sig
-COPY hashicorp.asc hashicorp.asc
 RUN gpg --import hashicorp.asc
 RUN gpg --verify terraform_${TERRAFORM_VERSION}_SHA256SUMS.sig terraform_${TERRAFORM_VERSION}_SHA256SUMS
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -56,7 +56,10 @@ RUN pip3 install --no-cache-dir setuptools==58.0.4
 RUN pip3 install --no-cache-dir awscli==${AWS_CLI_VERSION}
 RUN pip3 install saws
 
+# Install aws-nuke
 FROM debian:${DEBIAN_VERSION} as aws-nuke
+RUN apt-get update
+RUN apt-get install --no-install-recommends -y curl
 RUN curl -Os https://github.com/rebuy-de/aws-nuke/releases/download/v${AWS_NUKE_VERSION}/aws-nuke-v${AWS_NUKE_VERSION}-linux-amd64.tar.gz
 RUN tar xvf aws-nuke-v${AWS_NUKE_VERSION}-linux-amd64.tar.gz
 RUN cp aws-nuke-v${AWS_NUKE_VERSION}-linux-amd64 /usr/bin/aws-nuke
