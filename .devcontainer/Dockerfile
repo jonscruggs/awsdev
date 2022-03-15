@@ -57,7 +57,7 @@ RUN pip3 install --no-cache-dir awscli==${AWS_CLI_VERSION}
 RUN pip3 install saws
 
 FROM debian:${DEBIAN_VERSION} as aws-nuke
-RUN wget https://github.com/rebuy-de/aws-nuke/releases/download/v${AWS_NUKE_VERSION}/aws-nuke-v${AWS_NUKE_VERSION}-linux-amd64.tar.gz
+RUN curl -Os https://github.com/rebuy-de/aws-nuke/releases/download/v${AWS_NUKE_VERSION}/aws-nuke-v${AWS_NUKE_VERSION}-linux-amd64.tar.gz
 RUN tar xvf aws-nuke-v${AWS_NUKE_VERSION}-linux-amd64.tar.gz
 RUN cp aws-nuke-v${AWS_NUKE_VERSION}-linux-amd64 /usr/bin/aws-nuke
 
