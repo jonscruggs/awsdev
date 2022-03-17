@@ -89,6 +89,7 @@ WORKDIR /workspace
 COPY --from=terraform /workspace/terraform /usr/local/bin/terraform
 COPY --from=docker /usr/bin/docker* /usr/local/bin/
 COPY --from=aws-cli /usr/local/bin/aws* /usr/local/bin/
+COPY --from=aws-cli /usr/local/bin/saws /usr/local/bin/
 COPY --from=aws-cli /usr/local/lib/python${PYTHON_MAJOR_VERSION}/dist-packages /usr/local/lib/python${PYTHON_MAJOR_VERSION}/dist-packages
 COPY --from=aws-cli /usr/lib/python3/dist-packages /usr/lib/python3/dist-packages
 COPY --from=aws-nuke /usr/bin/aws-nuke /usr/local/bin/aws-nuke
@@ -98,7 +99,7 @@ RUN groupadd --gid 1001 nonroot \
   # user needs a home folder to store aws credentials
   && useradd --gid nonroot --create-home --uid 1001 nonroot \
   && chown nonroot:nonroot /workspace
-USER root
+USER nonroot
 RUN sh -c "$(wget https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)"
 
 ENTRYPOINT ["/usr/bin/bash"]
