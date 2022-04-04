@@ -10,27 +10,37 @@ locals {
   }
 }
 
-resource "aws_s3_bucket" "this" {
+resource "aws_s3_bucket" "terraform_state" {
   bucket = var.state_bucket_name
   force_destroy = true
-
-  server_side_encryption_configuration {
-    rule {
-      apply_server_side_encryption_by_default {
-        sse_algorithm     = "AES256"
-      }
-    }
-  }
-
-  versioning {
-    enabled = true
-  }
-
   tags = local.tags
 }
 
+resource "aws_s3_bucket_versioning" "versioning_example" {
+  bucket = aws_s3_bucket.terraform_state.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_kms_key" "mykey" {
+  description             = "This key is used to encrypt bucket objects"
+  deletion_window_in_days = 10
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "example" {
+  bucket = aws_s3_bucket.terraform_state.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      kms_master_key_id = aws_kms_key.mykey.arn
+      sse_algorithm     = "aws:kms"
+    }
+  }
+}
+
 resource "aws_s3_bucket_public_access_block" "this" {
-  bucket                  = aws_s3_bucket.this.id
+  bucket                  = aws_s3_bucket.terraform_state.id
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
@@ -41,10 +51,10 @@ resource "aws_s3_bucket_public_access_block" "this" {
 # Allows all services to log to bucket
 module "aws_logs" {
   source         = "trussworks/logs/aws"
-  s3_bucket_name = "scruggs-xyz-aws-logs"
+  s3_bucket_name = "scruggs-xyz-aws-logs-${random_id.id.hex}"
 }
 
-resource "aws_dynamodb_table" "this" {
+resource "aws_dynamodb_table" "state_lock" {
   name = var.state_lock_table_name
   hash_key = "LockID"
   billing_mode     = "PAY_PER_REQUEST"

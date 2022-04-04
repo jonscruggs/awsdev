@@ -1,13 +1,13 @@
 # network.tf
 resource "aws_vpc" "app_vpc" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
 }
 
 resource "aws_subnet" "public_c" {
   vpc_id            = aws_vpc.app_vpc.id
   cidr_block        = "10.0.1.0/25"
-  availability_zone = "us-west-1c"
+  availability_zone = "us-west-1a"
 
   tags = {
     "Name" = "public | us-west-1c"
@@ -17,10 +17,10 @@ resource "aws_subnet" "public_c" {
 resource "aws_subnet" "private_c" {
   vpc_id            = aws_vpc.app_vpc.id
   cidr_block        = "10.0.2.0/25"
-  availability_zone = "us-west-1c"
+  availability_zone = "us-west-1a"
 
   tags = {
-    "Name" = "private | us-west-1c"
+    "Name" = "private | us-west-1a"
   }
 }
 
