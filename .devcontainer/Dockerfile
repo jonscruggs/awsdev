@@ -102,5 +102,8 @@ RUN groupadd --gid 1001 nonroot \
 USER nonroot
 RUN sh -c "$(wget https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)"
 
+ENV AWS_CONFIG_FILE=/workspaces/awsdev/.aws/config
+ENV AWS_SHARED_CREDENTIALS_FILE=/workspaces/awsdev/.aws/credentials
+
 ENTRYPOINT ["/usr/bin/bash"]
 CMD ["/usr/bin/bash"]
