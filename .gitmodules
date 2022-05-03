@@ -1,3 +1,6 @@
 [submodule "aws-sa-associate-saac02"]
 	path = aws-sa-associate-saac02
 	url = https://github.com/jonscruggs/aws-sa-associate-saac02.git
+[submodule "ansible-role-for-splunk"]
+	path = ansible-role-for-splunk
+	url = https://github.com/jonscruggs/ansible-role-for-splunk.git
