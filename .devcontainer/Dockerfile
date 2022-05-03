@@ -5,6 +5,7 @@ ARG PYTHON_MAJOR_VERSION=3.9
 ARG DEBIAN_VERSION=bullseye-20210902-slim
 ARG DOCKER_VERSION=20.10.10
 ARG AWS_NUKE_VERSION=2.17.0
+ARG ANSIBLE_VERSION=5.7.0
 
 # Download Docker binary
 FROM debian:${DEBIAN_VERSION} as docker
@@ -52,6 +53,8 @@ RUN apt-get update
 RUN apt-get install -y --no-install-recommends python3
 RUN apt-get install -y --no-install-recommends python3-pip
 RUN apt-get install -y groff --no-install-recommends
+RUN apt-get install --no-install-recommends -y curl
+RUN curl "https://s3.amazonaws.com/session-manager-downloads/plugin/latest/ubuntu_64bit/session-manager-plugin.deb" -o "session-manager-plugin.deb"
 RUN pip3 install --no-cache-dir setuptools==58.0.4
 RUN pip3 install --no-cache-dir awscli==${AWS_CLI_VERSION}
 RUN pip3 install saws
@@ -67,6 +70,16 @@ RUN wget https://github.com/rebuy-de/aws-nuke/releases/download/v${AWS_NUKE_VERS
 RUN ls -al /workspace
 RUN tar xvf /workspace/aws-nuke-v${AWS_NUKE_VERSION}-linux-amd64.tar.gz
 RUN cp aws-nuke-v${AWS_NUKE_VERSION}-linux-amd64 /usr/bin/aws-nuke
+
+# Install ansible
+FROM debian:${DEBIAN_VERSION} as ansible
+ARG ANSIBLE_VERSION
+RUN apt-get update
+RUN apt-get install -y --no-install-recommends python3-pip
+WORKDIR /workspace
+RUN pip3 install --no-cache-dir setuptools==58.0.4
+RUN pip3 install --no-cache-dir ansible==${ANSIBLE_VERSION}
+
 
 # Build final image
 FROM debian:${DEBIAN_VERSION}
@@ -89,6 +102,9 @@ WORKDIR /workspace
 COPY --from=terraform /workspace/terraform /usr/local/bin/terraform
 COPY --from=docker /usr/bin/docker* /usr/local/bin/
 COPY --from=aws-cli /usr/local/bin/aws* /usr/local/bin/
+COPY --from=ansible /usr/local/bin/ansible* /usr/local/bin/
+#COPY --from=aws-cli /usr/local/bin/ssmcli /usr/local/bin/
+#COPY --from=aws-cli /usr/local/sessionmanagerplugin /usr/local/sessionmanagerplugin
 COPY --from=aws-cli /usr/local/bin/saws /usr/local/bin/
 COPY --from=aws-cli /usr/local/lib/python${PYTHON_MAJOR_VERSION}/dist-packages /usr/local/lib/python${PYTHON_MAJOR_VERSION}/dist-packages
 COPY --from=aws-cli /usr/lib/python3/dist-packages /usr/lib/python3/dist-packages
@@ -99,7 +115,7 @@ RUN groupadd --gid 1001 nonroot \
   # user needs a home folder to store aws credentials
   && useradd --gid nonroot --create-home --uid 1001 nonroot \
   && chown nonroot:nonroot /workspace
-USER nonroot
+USER root
 RUN sh -c "$(wget https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh -O -)"
 
 ENV AWS_CONFIG_FILE=/workspaces/awsdev/.aws/config
